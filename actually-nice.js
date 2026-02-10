@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Actually NICE – My Schedule Summary (Dropdown @ H1)
-// @namespace    https://github.com/actually-nice/actually-nice
+// @namespace    https://github.com/guilhermecalderaro/Actually-Nice
 // @version      0.3.2
 // @description  Builds a dropdown summary table in the main document, anchored to the "My Schedule" H1 block.
 // @match        https://equiti-wfm.nicecloudsvc.com/wfm/webstation/my-schedule*
