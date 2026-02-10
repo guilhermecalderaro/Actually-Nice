@@ -5,7 +5,7 @@
 // @author       Guilherme Calderaro <guilhermecald96@gmail.com>
 // @source       https://github.com/guilhermecalderaro/Actually-Nice
 // @match        https://equiti-wfm.nicecloudsvc.com/wfm/webstation/my-schedule*
-// @require      ./dist/actually-nice.user.js
+// @require      https://github.com/guilhermecalderaro/Actually-Nice/raw/refs/heads/main/dist/actually-nice.min.js
 // @noframes
 // @grant        none
 // ==/UserScript==

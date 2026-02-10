@@ -9,143 +9,9 @@
 // @grant        none
 // ==/UserScript==
 
-(() => {
-  var __getOwnPropNames = Object.getOwnPropertyNames;
-  var __esm = (fn, res) => function __init() {
-    return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
-  };
-  var __commonJS = (cb, mod) => function __require() {
-    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
-  };
-
-  // src/config.js
-  var IFRAME_SELECTOR, TABLE_SELECTOR, CHECK_INTERVAL_MS, READY_TIMEOUT_MS, READY_POLL_MS, UI;
-  var init_config = __esm({
-    "src/config.js"() {
-      IFRAME_SELECTOR = "iframe.legacy-wrapper";
-      TABLE_SELECTOR = "#scheduleDetailTableDiv > table";
-      CHECK_INTERVAL_MS = 5e3;
-      READY_TIMEOUT_MS = 15e3;
-      READY_POLL_MS = 250;
-      UI = {
-        rootId: "an-root",
-        toggleId: "an-toggle",
-        panelId: "an-panel",
-        tableId: "an-summary-table",
-        anchorSelector: "body > app-root > div > main > app-home-page > h1.page-title",
-        containerSelector: "body > app-root > div > main > app-home-page"
-      };
-    }
-  });
-
-  // src/utils.js
-  function log(...args) {
-    console.log("[Actually NICE]", ...args);
-  }
-  function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-  function parseTimeToMinutes(timeStr) {
-    const date = /* @__PURE__ */ new Date(`1970-01-01 ${timeStr}`);
-    return date.getHours() * 60 + date.getMinutes();
-  }
-  function minutesToHHMM(totalMinutes) {
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-  }
-  function parseDayDate(dayText) {
-    const [, datePart] = dayText.split(" ");
-    if (!datePart) return /* @__PURE__ */ new Date();
-    return new Date(datePart);
-  }
-  function isFutureDay(dayText) {
-    const dayDate = parseDayDate(dayText);
-    const today = /* @__PURE__ */ new Date();
-    today.setHours(0, 0, 0, 0);
-    return dayDate > today;
-  }
-  function sortActivitiesDesc(activities) {
-    return Object.entries(activities).sort((a, b) => b[1].minutes - a[1].minutes);
-  }
-  function sortDaysDesc(byDay) {
-    return Object.keys(byDay).sort((a, b) => parseDayDate(b) - parseDayDate(a));
-  }
-  function escapeHtml(text) {
-    return String(text).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
-  }
-  var init_utils = __esm({
-    "src/utils.js"() {
-    }
-  });
-
-  // src/parser.js
-  function buildSummary(iframeDoc) {
-    const table = iframeDoc.querySelector(TABLE_SELECTOR);
-    if (!table) {
-      return { byDay: {}, byActivity: {} };
-    }
-    const rows = Array.from(table.querySelectorAll("tr")).filter((row) => !row.classList.contains("schedTableHdr"));
-    const byDay = {};
-    const byActivity = {};
-    let currentDay = null;
-    rows.forEach((row) => {
-      const cells = row.querySelectorAll("td, th");
-      if (cells.length < 7) {
-        return;
-      }
-      const dayCell = cells[1]?.innerText.trim();
-      const activityCell = cells[4];
-      const start = cells[5]?.innerText.trim();
-      const end = cells[6]?.innerText.trim();
-      if (dayCell) {
-        currentDay = dayCell;
-      }
-      if (!currentDay || isFutureDay(currentDay)) {
-        return;
-      }
-      if (!activityCell || !start || !end) {
-        return;
-      }
-      const activityText = activityCell.innerText.trim();
-      const img = activityCell.querySelector("img");
-      const imgSrc = img ? img.getAttribute("src") : null;
-      const duration = parseTimeToMinutes(end) - parseTimeToMinutes(start);
-      if (!Number.isFinite(duration) || duration <= 0) {
-        return;
-      }
-      byDay[currentDay] = byDay[currentDay] || {};
-      byDay[currentDay][activityText] = byDay[currentDay][activityText] || {
-        minutes: 0,
-        imgSrc
-      };
-      byDay[currentDay][activityText].minutes += duration;
-      byActivity[activityText] = byActivity[activityText] || {
-        minutes: 0,
-        imgSrc
-      };
-      byActivity[activityText].minutes += duration;
-    });
-    return { byDay, byActivity };
-  }
-  var init_parser = __esm({
-    "src/parser.js"() {
-      init_config();
-      init_utils();
-    }
-  });
-
-  // src/styles.js
-  function ensureStyles() {
-    const styleId = "an-styles";
-    if (document.getElementById(styleId)) {
-      return;
-    }
-    const style = document.createElement("style");
-    style.id = styleId;
-    style.textContent = `
+(()=>{var b=(t,e)=>()=>(t&&(e=t(t=0)),e);var X=(t,e)=>()=>(e||t((e={exports:{}}).exports,e),e.exports);var R,x,r,w=b(()=>{R="iframe.legacy-wrapper",x="#scheduleDetailTableDiv > table",r={rootId:"an-root",toggleId:"an-toggle",panelId:"an-panel",tableId:"an-summary-table",anchorSelector:"body > app-root > div > main > app-home-page > h1.page-title",containerSelector:"body > app-root > div > main > app-home-page"}});function q(...t){console.log("[Actually NICE]",...t)}function O(t){return new Promise(e=>setTimeout(e,t))}function k(t){let e=new Date(`1970-01-01 ${t}`);return e.getHours()*60+e.getMinutes()}function K(t){let e=Math.floor(t/60),n=t%60;return`${String(e).padStart(2,"0")}:${String(n).padStart(2,"0")}`}function L(t){let[,e]=t.split(" ");return e?new Date(e):new Date}function B(t){let e=L(t),n=new Date;return n.setHours(0,0,0,0),e>n}function S(t){return Object.entries(t).sort((e,n)=>n[1].minutes-e[1].minutes)}function E(t){return Object.keys(t).sort((e,n)=>L(n)-L(e))}function d(t){return String(t).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}var I=b(()=>{});function U(t){let e=t.querySelector(x);if(!e)return{byDay:{},byActivity:{}};let n=Array.from(e.querySelectorAll("tr")).filter(p=>!p.classList.contains("schedTableHdr")),o={},a={},s=null;return n.forEach(p=>{let u=p.querySelectorAll("td, th");if(u.length<7)return;let T=u[1]?.innerText.trim(),l=u[4],y=u[5]?.innerText.trim(),h=u[6]?.innerText.trim();if(T&&(s=T),!s||B(s)||!l||!y||!h)return;let c=l.innerText.trim(),m=l.querySelector("img"),A=m?m.getAttribute("src"):null,g=k(h)-k(y);!Number.isFinite(g)||g<=0||(o[s]=o[s]||{},o[s][c]=o[s][c]||{minutes:0,imgSrc:A},o[s][c].minutes+=g,a[c]=a[c]||{minutes:0,imgSrc:A},a[c].minutes+=g)}),{byDay:o,byActivity:a}}var F=b(()=>{w();I()});function j(){let t="an-styles";if(document.getElementById(t))return;let e=document.createElement("style");e.id=t,e.textContent=`
         /* Container anchored to app-home-page (relative) */
-        #${UI.rootId} {
+        #${r.rootId} {
             position: absolute;
             bottom: 10px;
             right: 30px;
@@ -155,7 +21,7 @@
             font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
-        #${UI.toggleId} {
+        #${r.toggleId} {
             font-size: 12px;
             line-height: 1;
             padding: 6px 10px;
@@ -170,11 +36,11 @@
             align-items: center;
         }
 
-        #${UI.toggleId}:hover {
+        #${r.toggleId}:hover {
             background: rgba(255, 255, 255, 0.98);
         }
 
-        #${UI.panelId} {
+        #${r.panelId} {
             position: absolute;
             bottom: calc(100% + 8px);
             right: 0;
@@ -190,11 +56,11 @@
             display: none;
         }
 
-        #${UI.panelId}.an-open {
+        #${r.panelId}.an-open {
             display: block;
         }
 
-        #${UI.panelId} .an-panel-header {
+        #${r.panelId} .an-panel-header {
             position: sticky;
             top: 0;
             background: rgba(255, 255, 255, 0.98);
@@ -206,13 +72,13 @@
             justify-content: space-between;
         }
 
-        #${UI.panelId} .an-title {
+        #${r.panelId} .an-title {
             font-size: 13px;
             font-weight: 600;
             margin: 0;
         }
 
-        #${UI.panelId} .an-meta {
+        #${r.panelId} .an-meta {
             font-size: 11px;
             color: #555;
             display: inline-flex;
@@ -220,7 +86,7 @@
             justify-content: flex-end;
         }
 
-        #${UI.panelId} .an-panel-body {
+        #${r.panelId} .an-panel-body {
             padding: 10px 12px 12px;
         }
 
@@ -343,21 +209,7 @@
         .an-day-group:last-child {
             margin-bottom: 0;
         }
-    `;
-    document.head.appendChild(style);
-  }
-  var init_styles = __esm({
-    "src/styles.js"() {
-      init_config();
-    }
-  });
-
-  // src/ui.js
-  function buildDropdownTableHtml(summary) {
-    const weekRows = sortActivitiesDesc(summary.byActivity);
-    const dayKeys = sortDaysDesc(summary.byDay);
-    function buildTable(rowsHtml) {
-      return `
+    `,document.head.appendChild(e)}var z=b(()=>{w()});function W(t){let e=S(t.byActivity),n=E(t.byDay);function o(l){return`
             <table class="an-table">
                 <thead>
                     <tr class="an-hdr">
@@ -365,97 +217,41 @@
                         <th class="an-th an-center" style="width: 80px;">Total</th>
                     </tr>
                 </thead>
-                <tbody>${rowsHtml}</tbody>
+                <tbody>${l}</tbody>
             </table>
-        `;
-    }
-    let striped = false;
-    function generateRowsHtml(items, groupKey, dayTextForLabel) {
-      striped = false;
-      return items.map(([activity, data], index) => {
-        striped = !striped;
-        const imgHtml = data.imgSrc ? `
-                <img src="${escapeHtml(data.imgSrc)}" alt="" class="an-ico">
-            ` : "";
-        const total = minutesToHHMM(data.minutes);
-        const isTotal = groupKey === "WEEK";
-        return `
-                <tr class="${striped ? "an-row an-striped" : "an-row"}">
-                    <td class="an-td" title="${escapeHtml(activity)}">
+        `}let a=!1;function s(l,y,h){return a=!1,l.map(([c,m],A)=>{a=!a;let g=m.imgSrc?`
+                <img src="${d(m.imgSrc)}" alt="" class="an-ico">
+            `:"",_=K(m.minutes),Q=y==="WEEK";return`
+                <tr class="${a?"an-row an-striped":"an-row"}">
+                    <td class="an-td" title="${d(c)}">
                         <span class="an-activity">
-                            ${imgHtml}
-                            <span class="an-activity-text">${escapeHtml(activity)}</span>
+                            ${g}
+                            <span class="an-activity-text">${d(c)}</span>
                         </span>
                     </td>
-                    <td class="an-td an-center ${isTotal ? "an-bold" : ""}"
-                        title="${escapeHtml(total)} (${escapeHtml(String(data.minutes))} min)">
-                        ${escapeHtml(total)}
+                    <td class="an-td an-center ${Q?"an-bold":""}"
+                        title="${d(_)} (${d(String(m.minutes))} min)">
+                        ${d(_)}
                     </td>
                 </tr>
-            `;
-      }).join("");
-    }
-    const weekRowsHtml = generateRowsHtml(weekRows, "WEEK", "WEEK");
-    const weekTableHtml = buildTable(weekRowsHtml);
-    const daySectionsHtml = dayKeys.map((day) => {
-      const activities = sortActivitiesDesc(summary.byDay[day]);
-      const rowsHtml = generateRowsHtml(activities, "DAY", day);
-      const tableHtml = buildTable(rowsHtml);
-      return `
+            `}).join("")}let p=s(e,"WEEK","WEEK"),u=o(p),T=n.map(l=>{let y=S(t.byDay[l]),h=s(y,"DAY",l),c=o(h);return`
             <details class="an-group an-day-group">
-                <summary class="an-summary">${escapeHtml(day)}</summary>
+                <summary class="an-summary">${d(l)}</summary>
                 <div class="an-group-content">
-                    ${tableHtml}
+                    ${c}
                 </div>
             </details>
-        `;
-    }).join("");
-    return `
+        `}).join("");return`
         <details class="an-group an-week-group" open>
             <summary class="an-summary">Week Overview</summary>
             <div class="an-group-content">
-                ${weekTableHtml}
+                ${u}
                 <div class="an-days-container">
-                    ${daySectionsHtml}
+                    ${T}
                 </div>
             </div>
         </details>
-    `;
-  }
-  function ensureAnchorLayout() {
-    const container = document.querySelector(UI.containerSelector);
-    const anchor = document.querySelector(UI.anchorSelector);
-    if (!container || !anchor) {
-      return null;
-    }
-    const cs = window.getComputedStyle(container);
-    if (cs.position === "static") {
-      container.style.position = "relative";
-    }
-    return container;
-  }
-  function ensureDropdownUi() {
-    ensureStyles();
-    const container = ensureAnchorLayout();
-    if (!container) {
-      return null;
-    }
-    let root = document.getElementById(UI.rootId);
-    if (root) {
-      if (!root.isConnected) {
-        container.appendChild(root);
-      }
-      return root;
-    }
-    root = document.createElement("div");
-    root.id = UI.rootId;
-    const btn = document.createElement("button");
-    btn.id = UI.toggleId;
-    btn.type = "button";
-    btn.innerHTML = '<span>Actually NICE</span><span style="opacity:.8">\u25BE</span>';
-    const panel = document.createElement("div");
-    panel.id = UI.panelId;
-    panel.innerHTML = `
+    `}function Z(){let t=document.querySelector(r.containerSelector),e=document.querySelector(r.anchorSelector);return!t||!e?null:(window.getComputedStyle(t).position==="static"&&(t.style.position="relative"),t)}function f(){j();let t=Z();if(!t)return null;let e=document.getElementById(r.rootId);if(e)return e.isConnected||t.appendChild(e),e;e=document.createElement("div"),e.id=r.rootId;let n=document.createElement("button");n.id=r.toggleId,n.type="button",n.innerHTML='<span>Actually NICE</span><span style="opacity:.8">\u25BE</span>';let o=document.createElement("div");return o.id=r.panelId,o.innerHTML=`
         <div class="an-panel-header">
             <p class="an-title">Schedule Summary</p>
             <div class="an-meta">
@@ -466,205 +262,4 @@
         <div class="an-panel-body">
             <div class="an-empty">Waiting for schedule...</div>
         </div>
-    `;
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      isOpen = !isOpen;
-      panel.classList.toggle("an-open", isOpen);
-    });
-    document.addEventListener("click", (e) => {
-      if (!isOpen) {
-        return;
-      }
-      if (!root.contains(e.target)) {
-        isOpen = false;
-        panel.classList.remove("an-open");
-      }
-    });
-    root.appendChild(btn);
-    root.appendChild(panel);
-    container.appendChild(root);
-    return root;
-  }
-  function setMeta(updated, source) {
-    const root = ensureDropdownUi();
-    if (!root) {
-      return;
-    }
-    const updatedEl = root.querySelector('[data-an-meta="updated"]');
-    const sourceEl = root.querySelector('[data-an-meta="source"]');
-    if (updatedEl) updatedEl.textContent = `Updated: ${updated}`;
-    if (sourceEl) sourceEl.textContent = `Source: ${source}`;
-  }
-  function setBodyHtml(html) {
-    const root = ensureDropdownUi();
-    if (!root) {
-      return;
-    }
-    const body = root.querySelector(".an-panel-body");
-    if (body) body.innerHTML = html;
-  }
-  var isOpen;
-  var init_ui = __esm({
-    "src/ui.js"() {
-      init_config();
-      init_utils();
-      init_styles();
-      isOpen = false;
-    }
-  });
-
-  // src/app.js
-  function getIframe() {
-    return document.querySelector(IFRAME_SELECTOR);
-  }
-  function getIframeDocument(iframe) {
-    try {
-      return iframe.contentDocument || iframe.contentWindow.document;
-    } catch (_) {
-      return null;
-    }
-  }
-  async function waitForIframeReady(iframe) {
-    const startedAt = Date.now();
-    while (Date.now() - startedAt <= READY_TIMEOUT_MS) {
-      const doc = getIframeDocument(iframe);
-      if (doc && doc.body) {
-        const baseTable = doc.querySelector(TABLE_SELECTOR);
-        if (baseTable) {
-          return doc;
-        }
-      }
-      await sleep(READY_POLL_MS);
-    }
-    return null;
-  }
-  function buildSnapshotKey(summary) {
-    const days = sortDaysDesc(summary.byDay);
-    const activities = sortActivitiesDesc(summary.byActivity);
-    const dayHead = days.slice(0, 5).join("|");
-    const actHead = activities.slice(0, 8).map(([name, data]) => `${name}:${data.minutes}`).join("|");
-    return `${days.length}/${activities.length}::${dayHead}::${actHead}`;
-  }
-  function renderFromIframeDoc(iframeDoc, reason) {
-    if (!ensureDropdownUi()) {
-      return;
-    }
-    const baseTable = iframeDoc.querySelector(TABLE_SELECTOR);
-    if (!baseTable) {
-      setMeta((/* @__PURE__ */ new Date()).toLocaleString(), `${reason} (no base table)`);
-      setBodyHtml('<div class="an-empty">Base schedule table not found.</div>');
-      return;
-    }
-    const summary = buildSummary(iframeDoc);
-    const snapshotKey = buildSnapshotKey(summary);
-    if (snapshotKey === STATE.lastSnapshotKey && iframeDoc === STATE.lastDoc) {
-      setMeta((/* @__PURE__ */ new Date()).toLocaleString(), `${reason} (no changes)`);
-      return;
-    }
-    STATE.lastSnapshotKey = snapshotKey;
-    STATE.lastDoc = iframeDoc;
-    setMeta((/* @__PURE__ */ new Date()).toLocaleString(), reason);
-    setBodyHtml(buildDropdownTableHtml(summary));
-    log("Rendered dropdown summary:", reason);
-  }
-  async function onIframeLoad() {
-    const iframe = getIframe();
-    if (!iframe) return;
-    STATE.iframe = iframe;
-    STATE.iframeDoc = null;
-    STATE.lastSnapshotKey = "";
-    STATE.lastDoc = null;
-    const doc = await waitForIframeReady(iframe);
-    if (!doc) {
-      setMeta((/* @__PURE__ */ new Date()).toLocaleString(), "iframe load (not ready)");
-      setBodyHtml('<div class="an-empty">Schedule not ready yet.</div>');
-      return;
-    }
-    STATE.iframeDoc = doc;
-    renderFromIframeDoc(doc, "iframe load");
-  }
-  function bindIframeLoad(iframe) {
-    if (iframe.dataset.anBound === "1") {
-      return;
-    }
-    iframe.dataset.anBound = "1";
-    iframe.addEventListener("load", onIframeLoad);
-    if (iframe.contentDocument && iframe.contentDocument.readyState === "complete") {
-      onIframeLoad();
-    }
-  }
-  function ensureIframeBound() {
-    const iframe = getIframe();
-    if (!iframe) {
-      return;
-    }
-    bindIframeLoad(iframe);
-  }
-  function startTopWatcher() {
-    if (STATE.tickTimer) {
-      clearInterval(STATE.tickTimer);
-    }
-    STATE.tickTimer = setInterval(() => {
-      try {
-        ensureDropdownUi();
-        ensureIframeBound();
-        const iframe = STATE.iframe || getIframe();
-        if (!iframe) return;
-        const doc = getIframeDocument(iframe);
-        if (!doc || !doc.body) return;
-        if (doc !== STATE.iframeDoc) {
-          STATE.iframeDoc = doc;
-          STATE.lastSnapshotKey = "";
-          STATE.lastDoc = null;
-          renderFromIframeDoc(doc, "doc swap");
-          return;
-        }
-        if (!doc.querySelector(TABLE_SELECTOR)) {
-          return;
-        }
-        renderFromIframeDoc(doc, "watcher");
-      } catch (_) {
-      }
-    }, CHECK_INTERVAL_MS);
-  }
-  function init() {
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", () => {
-        ensureDropdownUi();
-        ensureIframeBound();
-        startTopWatcher();
-      });
-      return;
-    }
-    ensureDropdownUi();
-    ensureIframeBound();
-    startTopWatcher();
-  }
-  var STATE;
-  var init_app = __esm({
-    "src/app.js"() {
-      init_config();
-      init_utils();
-      init_parser();
-      init_ui();
-      STATE = {
-        iframe: null,
-        iframeDoc: null,
-        lastDoc: null,
-        lastSnapshotKey: "",
-        tickTimer: null
-      };
-    }
-  });
-
-  // src/index.js
-  var require_index = __commonJS({
-    "src/index.js"() {
-      init_app();
-      init();
-    }
-  });
-  require_index();
-})();
+    `,n.addEventListener("click",a=>{a.preventDefault(),a.stopPropagation(),v=!v,o.classList.toggle("an-open",v)}),document.addEventListener("click",a=>{v&&(e.contains(a.target)||(v=!1,o.classList.remove("an-open")))}),e.appendChild(n),e.appendChild(o),t.appendChild(e),e}function D(t,e){let n=f();if(!n)return;let o=n.querySelector('[data-an-meta="updated"]'),a=n.querySelector('[data-an-meta="source"]');o&&(o.textContent=`Updated: ${t}`),a&&(a.textContent=`Source: ${e}`)}function $(t){let e=f();if(!e)return;let n=e.querySelector(".an-panel-body");n&&(n.innerHTML=t)}var v,N=b(()=>{w();I();z();v=!1});function M(){return document.querySelector(R)}function V(t){try{return t.contentDocument||t.contentWindow.document}catch{return null}}async function ot(t){let e=Date.now();for(;Date.now()-e<=15e3;){let n=V(t);if(n&&n.body&&n.querySelector(x))return n;await O(250)}return null}function at(t){let e=E(t.byDay),n=S(t.byActivity),o=e.slice(0,5).join("|"),a=n.slice(0,8).map(([s,p])=>`${s}:${p.minutes}`).join("|");return`${e.length}/${n.length}::${o}::${a}`}function H(t,e){if(!f())return;if(!t.querySelector(x)){D(new Date().toLocaleString(),`${e} (no base table)`),$('<div class="an-empty">Base schedule table not found.</div>');return}let o=U(t),a=at(o);if(a===i.lastSnapshotKey&&t===i.lastDoc){D(new Date().toLocaleString(),`${e} (no changes)`);return}i.lastSnapshotKey=a,i.lastDoc=t,D(new Date().toLocaleString(),e),$(W(o)),q("Rendered dropdown summary:",e)}async function P(){let t=M();if(!t)return;i.iframe=t,i.iframeDoc=null,i.lastSnapshotKey="",i.lastDoc=null;let e=await ot(t);if(!e){D(new Date().toLocaleString(),"iframe load (not ready)"),$('<div class="an-empty">Schedule not ready yet.</div>');return}i.iframeDoc=e,H(e,"iframe load")}function rt(t){t.dataset.anBound!=="1"&&(t.dataset.anBound="1",t.addEventListener("load",P),t.contentDocument&&t.contentDocument.readyState==="complete"&&P())}function C(){let t=M();t&&rt(t)}function Y(){i.tickTimer&&clearInterval(i.tickTimer),i.tickTimer=setInterval(()=>{try{f(),C();let t=i.iframe||M();if(!t)return;let e=V(t);if(!e||!e.body)return;if(e!==i.iframeDoc){i.iframeDoc=e,i.lastSnapshotKey="",i.lastDoc=null,H(e,"doc swap");return}if(!e.querySelector(x))return;H(e,"watcher")}catch{}},5e3)}function G(){if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",()=>{f(),C(),Y()});return}f(),C(),Y()}var i,J=b(()=>{w();I();F();N();i={iframe:null,iframeDoc:null,lastDoc:null,lastSnapshotKey:"",tickTimer:null}});var it=X(()=>{J();G()});it();})();

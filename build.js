@@ -18,8 +18,8 @@ const metadata = `// ==UserScript==
 esbuild.build({
   entryPoints: ['src/index.js'],
   bundle: true,
-  outfile: 'dist/actually-nice.user.js', // Renaming output to .user.js for easier install
-  minify: false,
+  outfile: 'dist/actually-nice.min.js',
+  minify: true,
   sourcemap: false,
   target: ['es2020'],
   banner: {
@@ -27,4 +27,4 @@ esbuild.build({
   },
 }).catch(() => process.exit(1));
 
-console.log('Build complete: dist/actually-nice.user.js');
+console.log('Build complete: dist/actually-nice.min.js');
