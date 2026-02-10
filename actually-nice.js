@@ -23,9 +23,7 @@
         toggleId: 'an-toggle',
         panelId: 'an-panel',
         tableId: 'an-summary-table',
-        // Anchor: the H1 block inside main/app-home-page
         anchorSelector: 'body > app-root > div > main > app-home-page > h1.page-title',
-        // We will mount inside app-home-page, positioned relative to it
         containerSelector: 'body > app-root > div > main > app-home-page'
     };
 
@@ -39,7 +37,6 @@
     };
 
     function log(...args) {
-        // eslint-disable-next-line no-console
         console.log('[Actually NICE]', ...args);
     }
 
@@ -208,78 +205,89 @@
         const weekRows = sortActivitiesDesc(summary.byActivity);
         const dayKeys = sortDaysDesc(summary.byDay);
 
-        const headerRow = `
-            <tr class="an-hdr">
-                <th class="an-th an-center">Day</th>
-                <th class="an-th">Activity</th>
-                <th class="an-th an-center">Total</th>
-            </tr>
-        `;
-
-        let striped = false;
-        let lastGroup = null;
-
-        function rowHtml(groupKey, dayText, indexRow, activity, data, isTotal) {
-            if (groupKey !== lastGroup) {
-                striped = !striped;
-                lastGroup = groupKey;
-            }
-
-            let dayLabel = '';
-            if (indexRow > 1) {
-                dayLabel = '';
-            } else if (groupKey === 'WEEK') {
-                dayLabel = indexRow === 0 ? 'Week' : '';
-            } else {
-                const label = extractDayLabel(dayText);
-                dayLabel = indexRow === 0 ? label.short : label.date;
-            }
-
-            const imgHtml = data.imgSrc ? `
-                <img
-                    src="${escapeHtml(data.imgSrc)}"
-                    alt=""
-                    class="an-ico"
-                >
-            ` : '';
-
-            const total = minutesToHHMM(data.minutes);
-
+        function buildTable(rowsHtml) {
             return `
-                <tr class="${striped ? 'an-row an-striped' : 'an-row'}">
-                    <td class="an-td an-center" title="${escapeHtml(dayText)}">${escapeHtml(dayLabel)}</td>
-                    <td class="an-td" title="${escapeHtml(activity)}">
-                        <span class="an-activity">
-                            ${imgHtml}
-                            <span class="an-activity-text">${escapeHtml(activity)}</span>
-                        </span>
-                    </td>
-                    <td class="an-td an-center ${isTotal ? 'an-bold' : ''}"
-                        title="${escapeHtml(total)} (${escapeHtml(String(data.minutes))} minutos)">
-                        ${escapeHtml(total)}
-                    </td>
-                </tr>
+                <table class="an-table">
+                    <thead>
+                        <tr class="an-hdr">
+                            <th class="an-th">Activity</th>
+                            <th class="an-th an-center" style="width: 80px;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
             `;
         }
 
-        const bodyParts = [];
+        let striped = false;
+        // We'll reset striped for each table or keep it global? 
+        // Let's keep it global for visual variety, or reset. Resetting might look cleaner per block.
+        // Let's reset for each block to ensure the first row is always white/striped consistent.
+        
+        function generateRowsHtml(items, groupKey, dayTextForLabel) {
+            striped = false; // reset for each table
+            
+            return items.map(([activity, data], index) => {
+                striped = !striped; // toggle
+                
+                const imgHtml = data.imgSrc ? `
+                    <img src="${escapeHtml(data.imgSrc)}" alt="" class="an-ico">
+                ` : '';
 
-        weekRows.forEach(([activity, data], index) => {
-            bodyParts.push(rowHtml('WEEK', 'WEEK', index, activity, data, true));
-        });
+                const total = minutesToHHMM(data.minutes);
+                const isTotal = (groupKey === 'WEEK');
 
-        dayKeys.forEach((day) => {
+                return `
+                    <tr class="${striped ? 'an-row an-striped' : 'an-row'}">
+                        <td class="an-td" title="${escapeHtml(activity)}">
+                            <span class="an-activity">
+                                ${imgHtml}
+                                <span class="an-activity-text">${escapeHtml(activity)}</span>
+                            </span>
+                        </td>
+                        <td class="an-td an-center ${isTotal ? 'an-bold' : ''}"
+                            title="${escapeHtml(total)} (${escapeHtml(String(data.minutes))} min)">
+                            ${escapeHtml(total)}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // -- Build Week Section --
+
+        const weekRowsHtml = generateRowsHtml(weekRows, 'WEEK', 'WEEK');
+        const weekTableHtml = buildTable(weekRowsHtml);
+
+        // -- Build Day Sections --
+
+        const daySectionsHtml = dayKeys.map((day) => {
             const activities = sortActivitiesDesc(summary.byDay[day]);
-            activities.forEach(([activity, data], index) => {
-                bodyParts.push(rowHtml(day, day, index, activity, data, false));
-            });
-        });
+            const rowsHtml = generateRowsHtml(activities, 'DAY', day);
+            const tableHtml = buildTable(rowsHtml);
+            
+            return `
+                <details class="an-group an-day-group" open>
+                    <summary class="an-summary">${escapeHtml(day)}</summary>
+                    <div class="an-group-content">
+                        ${tableHtml}
+                    </div>
+                </details>
+            `;
+        }).join('');
+
+        // -- Wrap everything in a top-level Week details --
 
         return `
-            <table id="${UI.tableId}" class="an-table">
-                <thead>${headerRow}</thead>
-                <tbody>${bodyParts.join('')}</tbody>
-            </table>
+            <details class="an-group an-week-group" open>
+                <summary class="an-summary">Week Overview</summary>
+                <div class="an-group-content">
+                    ${weekTableHtml}
+                    <div class="an-days-container">
+                        ${daySectionsHtml}
+                    </div>
+                </div>
+            </details>
         `;
     }
 
@@ -429,6 +437,68 @@
                 font-size: 12px;
                 color: #666;
                 padding: 6px 0;
+            }
+
+            /* --- Groups / Details --- */
+            .an-group {
+                border: 1px solid rgba(0,0,0,0.08);
+                border-radius: 6px;
+                margin-bottom: 8px;
+                background: #fff;
+                overflow: hidden;
+            }
+            .an-group[open] {
+                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            }
+
+            .an-summary {
+                padding: 8px 12px;
+                background: rgba(0,0,0,0.02);
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: 600;
+                user-select: none;
+                display: flex; /* or block */
+                align-items: center;
+                list-style: none; /* hide default triangle in some browsers */
+            }
+            .an-summary::-webkit-details-marker {
+                display: none;
+            }
+            /* Custom arrow */
+            .an-summary::before {
+                content: '▸';
+                display: inline-block;
+                width: 16px;
+                margin-right: 4px;
+                transition: transform 0.15s;
+            }
+            .an-group[open] > .an-summary::before {
+                transform: rotate(90deg);
+            }
+
+            .an-group-content {
+                padding: 0;
+            }
+
+            .an-week-group {
+                border: 1px solid rgba(0,0,0,0.15);
+            }
+            .an-week-group > .an-summary {
+                background: rgba(0,0,0,0.05);
+                font-size: 13px;
+            }
+            
+            .an-days-container {
+                padding: 8px;
+                background: rgba(0,0,0,0.01);
+            }
+            
+            .an-day-group {
+                margin-bottom: 6px;
+            }
+            .an-day-group:last-child {
+                margin-bottom: 0;
             }
         `;
         document.head.appendChild(style);
