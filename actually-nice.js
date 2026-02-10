@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Actually NICE – My Schedule Summary (Dropdown @ H1)
 // @namespace    https://github.com/actually-nice/actually-nice
-// @version      0.3.1
+// @version      0.3.2
 // @description  Builds a dropdown summary table in the main document, anchored to the "My Schedule" H1 block.
 // @match        https://equiti-wfm.nicecloudsvc.com/wfm/webstation/my-schedule*
 // @grant        none
@@ -262,12 +262,13 @@
         // -- Build Day Sections --
 
         const daySectionsHtml = dayKeys.map((day) => {
+
             const activities = sortActivitiesDesc(summary.byDay[day]);
             const rowsHtml = generateRowsHtml(activities, 'DAY', day);
             const tableHtml = buildTable(rowsHtml);
             
             return `
-                <details class="an-group an-day-group" open>
+                <details class="an-group an-day-group">
                     <summary class="an-summary">${escapeHtml(day)}</summary>
                     <div class="an-group-content">
                         ${tableHtml}
@@ -334,7 +335,7 @@
                 position: absolute;
                 top: calc(100% + 8px);
                 right: 0;
-                width: 520px;
+                width: 350px;
                 max-width: min(calc(100vw - 24px), 720px);
                 max-height: calc(100vh - 180px);
                 overflow: auto;
