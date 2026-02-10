@@ -14,7 +14,7 @@
     const IFRAME_SELECTOR = 'iframe.legacy-wrapper';
     const TABLE_SELECTOR = '#scheduleDetailTableDiv > table';
 
-    const CHECK_INTERVAL_MS = 500;
+    const CHECK_INTERVAL_MS = 5_000;
     const READY_TIMEOUT_MS = 15_000;
     const READY_POLL_MS = 250;
 
