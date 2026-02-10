@@ -1,11 +1,13 @@
 // ==UserScript==
-// @name         Actually NICE – My Schedule Summary (Dropdown @ H1)
-// @namespace    https://github.com/guilhermecalderaro/Actually-Nice
-// @version      0.3.2
-// @description  Builds a dropdown summary table in the main document, anchored to the "My Schedule" H1 block.
+// @name         Actually NICE – My Schedule Summary
+// @version      0.3.3
+// @description  Builds a dropdown summary table in the main document.
+// @author       Guilherme Calderaro <guilhermecald96@gmail.com>
+// @source       https://github.com/guilhermecalderaro/Actually-Nice
 // @match        https://equiti-wfm.nicecloudsvc.com/wfm/webstation/my-schedule*
-// @grant        none
+// @require      https://raw.githubusercontent.com/guilhermecalderaro/Actually-Nice/refs/heads/main/actually-nice.js
 // @noframes
+// @grant        none
 // ==/UserScript==
 
 (function () {
@@ -304,8 +306,8 @@
             /* Container anchored to app-home-page (relative) */
             #${UI.rootId} {
                 position: absolute;
-                top: 10px;
-                right: 10px;
+                bottom: 10px;
+                right: 30px;
                 display: inline-flex;
                 align-items: center;
                 z-index: 2147483646;
@@ -333,11 +335,11 @@
 
             #${UI.panelId} {
                 position: absolute;
-                top: calc(100% + 8px);
+                bottom: calc(100% + 8px);
                 right: 0;
                 width: 350px;
                 max-width: min(calc(100vw - 24px), 720px);
-                max-height: calc(100vh - 180px);
+                max-height: calc(50vh - 140px);
                 overflow: auto;
                 background: #fff;
                 color: #111;
@@ -373,7 +375,6 @@
                 font-size: 11px;
                 color: #555;
                 display: inline-flex;
-                gap: 10px;
                 flex-wrap: wrap;
                 justify-content: flex-end;
             }
